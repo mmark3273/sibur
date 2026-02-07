@@ -1,0 +1,390 @@
+
+:root {
+  --bg: #ffffff;
+  --panel: #ffffff;
+  --text: #0b0f14;
+  --muted: rgba(11,15,20,.62);
+  /* UI chrome vs grid borders should be independent */
+  --uiBorder: rgba(11,15,20,.12);
+  --gridBorder: rgba(11,15,20,.22);
+  --shadow: 0 8px 24px rgba(11,15,20,.08);
+
+  --accent: #55b4c7; /* кнопки / активная вкладка */
+  --fillSchedule: rgba(85,180,199,.55);
+  --fillPlan: rgba(85,180,199,.30);
+  --fillFact: rgba(37,99,235,.24);
+  --graySoft: rgba(11,15,20,.06);
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans", "Helvetica Neue", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 200;
+  display: flex;
+  gap: 12px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--uiBorder);
+  background: var(--panel);
+  align-items: center;
+}
+
+.filtersHead{ display:flex; align-items:center; justify-content: space-between; gap: 12px; }
+.filtersTools{ display:flex; align-items:center; gap: 10px; }
+#filterPicker{ min-width: 260px; }
+
+.nav{ display:flex; gap:8px; margin-right: 10px; }
+.tab{
+  text-decoration:none;
+  color: var(--text);
+  border: 1px solid var(--uiBorder);
+  padding: 8px 12px;
+  border-radius: 999px;
+  background:#fff;
+}
+.tab.active{ background: color-mix(in srgb, var(--accent) 18%, white); border-color: color-mix(in srgb, var(--accent) 45%, white); }
+.block { display:flex; align-items:center; gap:8px; flex-wrap: wrap; }
+.title { font-weight: 700; color: var(--text); margin-right: 4px; font-size: 14px; }
+#status { color: var(--muted); font-size: 14px; }
+
+button {
+  background: #fff;
+  color: var(--text);
+  border: 1px solid var(--uiBorder);
+  border-radius: 999px;
+  padding: 7px 12px;
+  cursor: pointer;
+  box-shadow: 0 1px 0 rgba(11,15,20,.04);
+}
+button:hover { border-color: rgba(11,15,20,.22); }
+button.primary {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+button.primary:hover { filter: brightness(0.98); }
+
+select, input[type="text"], .ms-btn {
+  background: #fff;
+  color: var(--text);
+  border: 1px solid var(--uiBorder);
+  border-radius: 999px;
+  padding: 7px 10px;
+}
+input[type="file"]{
+  max-width: 320px;
+}
+
+.filters {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--uiBorder);
+  background: var(--panel);
+  position: relative;
+  z-index: 500; /* dropdowns must sit above the grid */
+}
+
+/* Smooth collapse/expand of filters while keeping the header (buttons) visible */
+.filtersBody{
+  overflow: hidden;
+  max-height: 1200px;
+  opacity: 1;
+  transform: translateY(0);
+  transition: max-height .22s ease, opacity .18s ease, transform .22s ease;
+}
+.filters.collapsed .filtersBody{
+  max-height: 0;
+  opacity: 0;
+  transform: translateY(-6px);
+}
+#filtersWrap {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(220px, 1fr));
+  gap: 10px;
+  margin-top: 10px;
+}
+.filterItem label { display:block; font-size:12px; color: var(--muted); margin-bottom: 4px; }
+.filterItem.hidden{ display:none; }
+.hint { margin-top: 8px; color: var(--muted); font-size: 12px; }
+
+.legend {
+  position: sticky;
+  top: 54px;
+  z-index: 150;
+  padding: 10px 16px;
+  display:flex; gap: 14px; align-items: center;
+  border-bottom: 1px solid var(--uiBorder);
+  color: var(--muted);
+  font-size: 13px;
+  background: var(--panel);
+}
+.chip { display:inline-block; width:14px; height:14px; border-radius: 4px; border:1px solid var(--uiBorder); }
+.chip.schedule { background: var(--fillSchedule); }
+.chip.plan { background: var(--fillPlan); }
+.chip.fact { background: var(--fillFact); }
+.chip.none { background: transparent; }
+
+.tableWrap {
+  padding: 0;
+  overflow: auto;
+  height: 420px; /* overwritten by JS setTableWrapHeight() */
+  position: relative;
+  z-index: 1;
+}
+
+table {
+  border-collapse: collapse;
+  width: max-content;
+  min-width: 100%;
+  background: #fff;
+  table-layout: fixed;
+}
+th, td {
+  border: 1px solid var(--gridBorder);
+  padding: 4px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+th {
+  position: sticky;
+  top: 0;
+  z-index: 20; /* header above body */
+  background: #fbfbfd;
+  box-shadow: 0 1px 0 rgba(11,15,20,.04);
+}
+
+/* Time header should stay visible and not be covered by sticky columns */
+thead th{ z-index: 25; }
+thead th.st1, thead th.st2, thead th.st3, thead th.st4, thead th.st5, thead th.st6{ z-index: 70; }
+thead th.st1, thead th.st2, thead th.st3, thead th.st4, thead th.st5, thead th.st6{ background:#fff; }
+
+/* Ensure sticky header stays above sticky left columns and has an opaque background */
+thead th{ background: #fbfbfd; }
+thead th:not(.st1):not(.st2):not(.st3):not(.st4):not(.st5):not(.st6){ z-index: 40; }
+
+/* resizable columns */
+th.resizable{ position: relative; }
+th.resizable{ overflow: visible; }
+.col-resizer{
+  position:absolute;
+  top:0;
+  right:-2px;
+  width: 6px;
+  height: 100%;
+  cursor: col-resize;
+  background: transparent;
+}
+.col-resizer:hover{ background: rgba(11,15,20,.06); }
+th.left, td.left {
+  position: sticky;
+  left: 0;
+  z-index: 6;
+  background: #fff;
+}
+
+/* Sticky left columns: left offsets computed from CSS vars (updated by JS when user resizes) */
+:root{
+  /* стартовые ширины сделаны максимально компактными */
+  --st1w: 110px;
+  --st2w: 80px;
+  --st3w: 160px;
+  --st4w: 105px;
+  --st5w: 105px;
+  --st6w: 82px;
+}
+th.st1, td.st1 { position: sticky; left: 0; background:#fff; }
+th.st2, td.st2 { position: sticky; left: var(--st1w); background:#fff; }
+th.st3, td.st3 { position: sticky; left: calc(var(--st1w) + var(--st2w)); background:#fff; }
+th.st4, td.st4 { position: sticky; left: calc(var(--st1w) + var(--st2w) + var(--st3w)); background:#fff; }
+th.st5, td.st5 { position: sticky; left: calc(var(--st1w) + var(--st2w) + var(--st3w) + var(--st4w)); background:#fff; }
+th.st6, td.st6 { position: sticky; left: calc(var(--st1w) + var(--st2w) + var(--st3w) + var(--st4w) + var(--st5w)); background:#fff; }
+
+/* White underlay for the whole frozen block */
+th.st1, th.st2, th.st3, th.st4, th.st5, th.st6,
+td.st1, td.st2, td.st3, td.st4, td.st5, td.st6{
+  background: #fff;
+  background-clip: padding-box;
+}
+
+/* White underlay for sticky block so scrolled content never shows through */
+th.st1, th.st2, th.st3, th.st4, th.st5, th.st6,
+td.st1, td.st2, td.st3, td.st4, td.st5, td.st6{
+  background: #fff;
+  background-clip: padding-box;
+}
+
+/* stacking: sticky columns above body, header+sticky above everything */
+td.st1, td.st2, td.st3, td.st4, td.st5, td.st6 { z-index: 12; }
+th.st1, th.st2, th.st3, th.st4, th.st5, th.st6 { z-index: 60; }
+
+/* разделитель между закреплённым блоком и временной сеткой */
+th.st6, td.st6 { box-shadow: 2px 0 0 rgba(11,15,20,.06); }
+
+
+/* Fix overlap: enforce explicit widths on sticky columns */
+th.st1, td.st1 { width: var(--st1w); min-width: var(--st1w); max-width: var(--st1w); }
+th.st2, td.st2 { width: var(--st2w); min-width: var(--st2w); max-width: var(--st2w); }
+th.st3, td.st3 { width: var(--st3w); min-width: var(--st3w); max-width: var(--st3w); }
+th.st4, td.st4 { width: var(--st4w); min-width: var(--st4w); max-width: var(--st4w); }
+th.st5, td.st5 { width: var(--st5w); min-width: var(--st5w); max-width: var(--st5w); }
+th.st6, td.st6 { width: var(--st6w); min-width: var(--st6w); max-width: var(--st6w); }
+
+td.st1, td.st3 { white-space: normal; line-height: 1.25; }
+th, td { overflow: hidden; text-overflow: ellipsis; }
+
+/* Plan cell label */
+.planTag{
+  display:inline-block;
+  padding: 1px 6px;
+  border-radius: 999px;
+  font-size: 11px;
+  line-height: 16px;
+  background: rgba(11,15,20,.08);
+  color: var(--text);
+}
+
+td.slot { height: 22px; padding: 0; text-align: center; cursor: pointer; }
+td.slot.schedule { background: var(--fillSchedule); }
+td.slot.plan { background: var(--fillPlan); }
+td.slot.fact { background: var(--fillFact); }
+td.slot.plan { cursor: not-allowed; }
+td.slot.schedule:hover, td.slot.fact:hover { outline: 2px solid rgba(85,180,199,.55); outline-offset: -2px; }
+
+td.layer{ font-weight:700; color: var(--muted); }
+
+/* Зебра по группам ТС (по 3 строки) – только для пустых ячеек */
+tr.groupAlt td.slot:not(.schedule):not(.plan):not(.fact){ background: rgba(11,15,20,.015); }
+tr.groupAlt td.st1, tr.groupAlt td.st2, tr.groupAlt td.st3, tr.groupAlt td.st4, tr.groupAlt td.st5, tr.groupAlt td.st6{ background: #fff; }
+
+.kpi{ color: var(--muted); font-size:12px; }
+
+/* Multi-select dropdown */
+.ms { position: relative; }
+.ms-btn {
+  width: 100%;
+  display:flex;
+  align-items:center;
+  justify-content: space-between;
+  gap: 10px;
+  cursor: pointer;
+}
+.ms-btn .ms-pill{
+  font-size: 11px;
+  color: rgba(255,255,255,.92);
+  background: var(--accent);
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+.ms-panel{
+  /* panels are positioned by JS (fixed) so they don't get cut by containers */
+  background: #fff;
+  border: 1px solid var(--uiBorder);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  padding: 10px;
+  z-index: 1200;
+  display:none;
+  overflow: auto; /* важно: если много значений, панель скроллится, а не "ломает" страницу */
+}
+.ms.open .ms-panel{ display:block; }
+.ms-actions{
+  display:flex;
+  gap: 8px;
+  align-items:center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.ms-actions button{
+  padding: 6px 8px;
+  border-radius: 10px;
+}
+.ms-search{
+  width: 100%;
+  margin-bottom: 8px;
+}
+.ms-list{
+  padding-right: 4px;
+}
+.ms-option{ display:flex; gap: 8px; align-items:center; padding: 4px 2px; }
+ #filterPicker .ms-list{
+   display: grid;
+   grid-template-columns: repeat(2, minmax(0, 1fr));
+   column-gap: 10px;
+ }
+ #filterPicker .ms-option{ white-space: normal; }
+/* список фильтров ("Выбрать фильтры") удобнее в 2 колонки */
+#filterPicker .ms-list{ display:grid; grid-template-columns: 1fr 1fr; column-gap: 10px; }
+.ms-item{ display:flex; gap: 8px; align-items:center; padding: 4px 2px; }
+.ms-item input{ transform: translateY(1px); }
+.ms-item span{ font-size: 12px; }
+
+.small { color: var(--muted); font-size: 11px; }
+
+/* Palette page */
+.paletteGrid{ display:grid; grid-template-columns: repeat(3, minmax(240px, 1fr)); gap: 12px; margin-top: 14px; }
+.paletteCard{ border:1px solid var(--uiBorder); border-radius: 16px; padding: 12px; background:#fff; box-shadow: 0 1px 0 rgba(11,15,20,.04); }
+.paletteTitle{ font-weight:700; margin-bottom: 10px; }
+.paletteRow{ display:flex; gap: 10px; align-items:center; }
+.paletteRow input[type="text"]{ width: 100%; }
+.palettePreview{ display:flex; gap: 8px; flex-wrap: wrap; }
+.previewCell{ width: 90px; height: 32px; display:flex; align-items:center; justify-content:center; border-radius: 10px; border:1px solid var(--uiBorder); font-size:12px; }
+.previewCell.schedule{ background: var(--fillSchedule); }
+.previewCell.plan{ background: var(--fillPlan); }
+.previewCell.fact{ background: var(--fillFact); }
+.previewCell.none{ background: transparent; }
+
+/* nicer grid look */
+tbody tr:nth-child(6n+1) td,
+tbody tr:nth-child(6n+2) td,
+tbody tr:nth-child(6n+3) td{ background: #fff; }
+tbody tr:nth-child(6n+4) td,
+tbody tr:nth-child(6n+5) td,
+tbody tr:nth-child(6n+6) td{ background: #fdfdff; }
+
+/* sticky separators */
+th.st6, td.st6 { box-shadow: 2px 0 0 rgba(11,15,20,.06); }
+th.st5, td.st5 { box-shadow: 2px 0 0 rgba(11,15,20,.06); }
+
+/* filter picker list prettier */
+.ms-option{ display:flex; gap: 8px; align-items:center; padding: 4px 2px; font-size: 12px; }
+
+/* Filters collapse (auto-hide on table scroll) */
+#filtersPanel.collapsed #filtersWrap,
+#filtersPanel.collapsed .hint{
+  display:none;
+}
+#filtersPanel.collapsed{
+  padding-bottom: 4px;
+}
+#filtersPanel .filtersHead{
+  gap: 10px;
+}
+#toggleFiltersBtn{
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--uiBorder);
+  background: #fff;
+  cursor: pointer;
+  font-weight: 600;
+}
+#toggleFiltersBtn:hover{ border-color: rgba(11,15,20,.25); }
+
+/* Filter picker popover */
+.ms-panel.chooser{
+  width: 460px !important;
+}
+.ms-panel.chooser .ms-list{
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px 10px;
+  padding-right: 6px;
+}
+.ms-panel.chooser .ms-option{
+  margin: 0;
+}
