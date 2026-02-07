@@ -1,0 +1,60 @@
+
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>План / Режим / Факт (по 30 минут)</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <div class="topbar">
+    <div class="nav">
+      <a class="tab active" href="/">График</a>
+      <a class="tab" href="/directory">Справочник</a>
+      <a class="tab" href="/palette">Палитра</a>
+    </div>
+    <div class="block">
+      <div class="title">Загрузка выгрузки "Заявки"</div>
+      <input id="file" type="file" accept=".xlsx,.xls">
+      <button id="uploadBtn" class="primary">Загрузить</button>
+      <span id="status"></span>
+    </div>
+
+    <div class="block">
+      <div class="title">Дата</div>
+      <select id="daySelect"></select>
+      <button id="refreshBtn">Обновить</button>
+      <button id="exportBtn" class="primary">Выгрузить Excel</button>
+    </div>
+  </div>
+
+  <div class="filters" id="filtersPanel">
+    <div class="filtersHead">
+      <div class="title">Фильтры (по столбцам из "Заявки")</div>
+      <div class="filtersTools">
+        <button id="toggleFiltersBtn" type="button">Скрыть фильтры</button>
+        <div id="filterPicker"></div>
+        <button id="clearAllFiltersBtn">Очистить все фильтры</button>
+      </div>
+    </div>
+    <div class="filtersBody" id="filtersBody">
+      <div id="filtersWrap"></div>
+      <div class="hint">Можно выбрать несколько значений или оставить пустым (значит «все»).</div>
+    </div>
+  </div>
+
+  <div class="legend">
+    <span class="chip schedule"></span> График работы (диспетчер / по умолчанию из справочника)
+    <span class="chip plan"></span> План (из заявок)
+    <span class="chip fact"></span> Факт (диспетчер)
+    <span class="chip none"></span> Пусто
+  </div>
+
+  <div class="tableWrap" id="tableWrap">
+    <table id="grid"></table>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
